@@ -10,23 +10,14 @@ if ($openFileDialog.ShowDialog() -eq 'OK') {
     exit
 }
 $printers = Import-Csv $csvPath
-$PrinterIP = Read-Host "Enter Printer IP Address"
 
 # Sets the template directory to the folder where this script is saved
 $TemplateDir = $PSScriptRoot
-
-$PortName = $PrinterIP
 
 $TrayConfigs = @{
     "TOP"    = "LexmarkTopDefaults.xml"
     "MIDDLE" = "LexmarkMiddleDefaults.xml"
     "BOTTOM" = "LexmarkBottomDefaults.xml"
-}
-
-# 1. Create the Port if it doesn't exist
-if (!(Get-PrinterPort -Name $PortName -ErrorAction SilentlyContinue)) {
-    Write-Host "Creating Port $PortName..." -ForegroundColor Cyan
-    Add-PrinterPort -Name $PortName -PrinterHostAddress $PrinterIP
 }
 
 # Ask for exclude list
@@ -41,7 +32,16 @@ if ($excludeInput -eq 'y') {
 # 2. Create Printers and Apply Tray Defaults
 foreach ($printer in $printers) {
     $FullName = $printer.'Printer Name'
-    $DriverName = $printer.'Driver Name'
+    $PrinterIP = $printer.'IP Address'
+    $PortName = $PrinterIP
+    $DriverName = "Lexmark Universal v2 PS3"  # Assuming default driver, or add to CSV if needed
+
+    # Create the Port if it doesn't exist
+    if (!(Get-PrinterPort -Name $PortName -ErrorAction SilentlyContinue)) {
+        Write-Host "Creating Port $PortName..." -ForegroundColor Cyan
+        Add-PrinterPort -Name $PortName -PrinterHostAddress $PrinterIP
+    }
+
     Write-Host "Processing $FullName..." -ForegroundColor Yellow
 
     # Add Printer
